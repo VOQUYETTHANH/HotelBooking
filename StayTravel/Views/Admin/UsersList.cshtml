@@ -1,0 +1,63 @@
+﻿@model IEnumerable<StayTravel.Models.User>
+@{
+    ViewBag.Title = "Quản Lý Người Dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Hoặc layout quản trị của bạn
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="fa-solid fa-users-gear text-warning me-2"></i>Quản Lý Tài Khoản Người Dùng</h2>
+        <a href="@Url.Action("AddUser", "Admin")" class="btn btn-warning fw-bold text-dark">
+            <i class="fa-solid fa-user-plus me-1"></i> Thêm Tài Khoản Mới
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="card shadow border-0 rounded-4 p-3">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Avatar</th>
+                    <th>Họ và Tên</th>
+                    <th>Email</th>
+                    <th>Vai Trò (Role)</th>
+                    <th class="text-center">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@item.Avatar" class="rounded-circle object-fit-cover border" width="40" height="40" alt="Avatar" />
+                        </td>
+                        <td class="fw-bold">@item.FullName</td>
+                        <td>@item.Email</td>
+                        <td>
+                            @if (item.RoleId == 1)
+                            {
+                                <span class="badge bg-danger">Quản Trị Viên (Admin)</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Khách Hàng</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a href="@Url.Action("EditUser", "Admin", new { id = item.UserId })" class="btn btn-sm btn-outline-primary me-2">
+                                <i class="fa-solid fa-pen-to-square"></i> Sửa
+                            </a>
+                            <a href="@Url.Action("DeleteUser", "Admin", new { id = item.UserId })" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa tài khoản này không?');">
+                                <i class="fa-solid fa-trash"></i> Xóa
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

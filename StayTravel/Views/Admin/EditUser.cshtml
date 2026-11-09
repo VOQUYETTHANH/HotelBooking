@@ -1,0 +1,48 @@
+﻿@model StayTravel.Models.User
+@{
+    ViewBag.Title = "Chỉnh Sửa Người Dùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5" style="max-width: 600px;">
+    <div class="card shadow border-0 rounded-4 p-4">
+        <h3 class="fw-bold mb-4"><i class="fa-solid fa-user-pen text-primary me-2"></i>Chỉnh Sửa Tài Khoản</h3>
+
+        @using (Html.BeginForm("EditUser", "Admin", FormMethod.Post))
+        {
+            @Html.HiddenFor(m => m.UserId)
+
+            <div class="text-center mb-3">
+                <img src="@Model.Avatar" class="rounded-circle border" width="100" height="100" alt="Avatar" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email:</label>
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @readonly = "readonly" })
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Họ và Tên:</label>
+                @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", @required = "required" })
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Quyền hạn (RoleId):</label>
+                <select name="RoleId" class="form-select">
+                    <option value="1" @(Model.RoleId == 1 ? "selected" : "")>Quản Trị Viên (Admin - 1)</option>
+                    <option value="2" @(Model.RoleId == 2 ? "selected" : "")>Khách Hàng (User - 2)</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Link Avatar:</label>
+                @Html.TextBoxFor(m => m.Avatar, new { @class = "form-control" })
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="@Url.Action("UsersList", "Admin")" class="btn btn-secondary">Quay lại</a>
+                <button type="submit" class="btn btn-primary fw-bold">Lưu Thay Đổi</button>
+            </div>
+        }
+    </div>
+</div>

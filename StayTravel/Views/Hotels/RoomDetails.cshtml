@@ -1,0 +1,57 @@
+﻿@model StayTravel.Models.Room
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Tự kiểm tra xem khách sạn này đã nằm trong Wishlist chưa dựa vào DB context hoặc Session/Identity
+    bool isWishlisted = false;
+    if (User.Identity.IsAuthenticated)
+    {
+        using (var db = new StayTravel.Models.HotelBookingDBEntities())
+        {
+            var userEmail = User.Identity.Name;
+            var user = db.Users.FirstOrDefault(u => u.Email == userEmail);
+            if (user != null)
+            {
+                isWishlisted = db.Wishlists.Any(w => w.UserId == user.UserId && w.HotelId == Model.HotelId);
+            }
+        }
+    }
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="@Model.ImageUrl" class="img-fluid rounded shadow-sm" />
+        </div>
+        <div class="col-md-6">
+            <span class="badge bg-secondary mb-2">@Model.RoomType.TypeName</span>
+            <h2 class="fw-bold">@Model.Hotel.HotelName - Phòng @Model.RoomNumber</h2>
+            <h3 class="text-danger fw-bold my-3">@string.Format("{0:N0}", Model.Price) VNĐ / đêm</h3>
+
+            <p><strong><i class="fa-solid fa-users me-2"></i>Sức chứa:</strong> @Model.Capacity người</p>
+            <p><strong><i class="fa-solid fa-mountain-sun me-2"></i>Tầm nhìn (View):</strong> @Model.OutsideView</p>
+            <p><strong><i class="fa-solid fa-wifi me-2"></i>Tiện ích:</strong> @Model.Amenities</p>
+
+            <!-- Nút Đặt Phòng Ngay -->
+            <a href="@Url.Action("Checkout", "Hotels", new { roomId = Model.RoomId })" class="btn btn-warning btn-lg w-100 mt-3 fw-bold">Đặt Phòng Ngay</a>
+
+            <!-- NÚT YÊU THÍCH TỰ ĐỔI TRẠNG THÁI NẾU ĐÃ BẤM -->
+            @using (Html.BeginForm("ToggleWishlist", "Hotels", FormMethod.Post, new { @class = "mt-2" }))
+            {
+                <input type="hidden" name="hotelId" value="@Model.HotelId" />
+                if (isWishlisted)
+                {
+                    <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold">
+                        <i class="fa-solid fa-heart me-2"></i>Bỏ khỏi danh sách yêu thích
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-outline-danger btn-lg w-100 fw-bold">
+                        <i class="fa-regular fa-heart me-2"></i>Thêm Khách Sạn Vào Yêu Thích
+                    </button>
+                }
+            }
+        </div>
+    </div>
+</div>

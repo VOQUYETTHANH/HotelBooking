@@ -1,0 +1,55 @@
+﻿@model StayTravel.Models.Room
+@{ Layout = null; }
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thêm Phòng - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+    <div class="container my-5" style="max-width: 600px;">
+        <div class="card shadow-sm p-4 border-0">
+            <h3 class="fw-bold mb-3">Thêm Phòng Mới</h3>
+            <hr />
+            @using (Html.BeginForm("CreateRoom", "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Thuộc Khách Sạn</label>
+                    @Html.DropDownList("HotelId", null, new { @class = "form-select" })
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Loại Phòng</label>
+                    @Html.DropDownList("RoomTypeId", null, new { @class = "form-select" })
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Số Phòng</label>
+                    @Html.TextBoxFor(m => m.RoomNumber, new { @class = "form-control", required = "required" })
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Giá Tiền (VNĐ/đêm)</label>
+                    @Html.TextBoxFor(m => m.Price, new { @class = "form-control", type = "number", required = "required" })
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Sức Chứa (Số người)</label>
+                    @Html.TextBoxFor(m => m.Capacity, new { @class = "form-control", type = "number", value = "2" })
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tiện Ích</label>
+                    @Html.TextBoxFor(m => m.Amenities, new { @class = "form-control", placeholder = "Wifi, Điều hòa, TV..." })
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tầm Nhìn (View)</label>
+                    @Html.TextBoxFor(m => m.OutsideView, new { @class = "form-control", placeholder = "Hướng biển, Thành phố..." })
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Hình Ảnh Phòng</label>
+                    <input type="file" name="imageFile" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-warning w-100 fw-bold py-2">Lưu Phòng</button>
+                <a href="@Url.Action("RoomsList", "Admin")" class="btn btn-secondary w-100 mt-2">Quay lại</a>
+            }
+        </div>
+    </div>
+</body>
+</html>

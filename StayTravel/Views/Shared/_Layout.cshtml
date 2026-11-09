@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>StayTravel - Đặt Phòng Khách Sạn</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-warning" href="@Url.Action("Index", "Home")"><i class="fa-solid me-2 fa-hotel"></i>LeeMinhHonn</a>
+
+            <!-- 7. Thanh tìm kiếm từ khóa hỗ trợ Aliases -->
+            <form class="d-flex mx-auto w-50" action="@Url.Action("Index", "Hotels")" method="get">
+                <input class="form-control me-2" type="search" name="keyword" placeholder="Nhập địa điểm (hcm, hà nội...), khách sạn..." />
+                <button class="btn btn-outline-warning" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+
+            <div class="navbar-nav ms-auto align-items-center">
+                <a class="nav-link" href="@Url.Action("Index", "Hotels")">Đặt Phòng</a>
+                <a class="nav-link" href="@Url.Action("About", "Home")">Giới Thiệu</a>
+                <a class="nav-link" href="@Url.Action("Contact", "Home")">Liên Hệ</a>
+
+                @if (Session["User"] != null)
+                {
+                    var loggedUser = (StayTravel.Models.User)Session["User"];
+
+                    if (loggedUser.RoleId == 1)
+                    {
+                        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-outline-warning btn-sm me-3 fw-bold">
+                            <i class="fa-solid fa-user-shield me-1"></i> Trang Admin
+                        </a>
+                    }
+
+                    <div class="dropdown ms-3">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <!-- Hiển thị Avatar -->
+                            <img src="@loggedUser.Avatar" class="rounded-circle border border-warning me-2 object-fit-cover" width="38" height="38" alt="Avatar" />
+                            <!-- Hiển thị Tên người dùng -->
+                            <span class="fw-bold text-warning">@loggedUser.FullName</span>
+                        </a>
+
+                        <!-- Menu thả xuống khi click vào tên/avatar -->
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item py-2" href="@Url.Action("Profile", "Account")">
+                                    <i class="fa-solid fa-user-gear me-2 text-warning"></i>Hồ Sơ & Lịch Sử
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item py-2 text-danger fw-bold" href="@Url.Action("Logout", "Account")">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng Xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    // KHI CHƯA ĐĂNG NHẬP: Hiện nút đăng nhập
+                    <div class="ms-3">
+                        <a class="btn btn-warning" href="@Url.Action("Login", "Account")">Đăng Nhập</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <div class="pb-5">
+        @RenderBody()
+    </div>
+
+    <footer class="bg-dark text-white text-center py-3">
+        <p class="mb-0">&copy; 2026 StayTravel. Tất cả quyền được bảo lưu. | <a href="@Url.Action("Privacy", "Home")" class="text-warning">Chính sách bảo mật</a></p>
+    </footer>
+</body>
+</html>

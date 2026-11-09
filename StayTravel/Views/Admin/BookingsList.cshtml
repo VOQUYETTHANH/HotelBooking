@@ -1,0 +1,107 @@
+﻿@model IEnumerable<StayTravel.Models.Booking>
+@{
+    ViewBag.Title = "Quản Lý Đặt Phòng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="fa-solid fa-calendar-check text-warning me-2"></i>Quản Lý Đơn Đặt Phòng</h2>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow border-0 rounded-4 p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Phòng</th>
+                        <th>Thời Gian Ở</th>
+                        <th>Tổng Tiền</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-center">Thao Tác Quản Trị</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">#@item.BookingId</td>
+                                <td>
+                                    <div class="fw-bold">@(item.User != null ? item.User.FullName : "Khách vãng lai")</div>
+                                    <small class="text-muted">@(item.User != null ? item.User.Email : "")</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">Phòng ID: @item.RoomId</span>
+                                </td>
+                                <td>
+                                    <small><i class="fa-solid fa-arrow-right-to-bracket text-success me-1"></i> @item.CheckInDate.ToString("dd/MM/yyyy")</small><br />
+                                    <small><i class="fa-solid fa-arrow-right-from-bracket text-danger me-1"></i> @item.CheckOutDate.ToString("dd/MM/yyyy")</small>
+                                </td>
+                                <td class="text-danger fw-bold">@item.TotalPrice.ToString("N0") VNĐ</td>
+                                <td>
+                                    @if (item.Status == "Đã duyệt")
+                                    {
+                                        <span class="badge bg-success px-2 py-1">Đã duyệt</span>
+                                    }
+                                    else if (item.Status == "Chờ duyệt")
+                                    {
+                                        <span class="badge bg-warning text-dark px-2 py-1">Chờ duyệt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger px-2 py-1">@item.Status</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <!-- Nút Duyệt: Hiện khi đơn CHƯA ĐƯỢC DUYỆT -->
+                                        @if (item.Status != "Đã duyệt")
+                                        {
+                                            <a href="@Url.Action("ApproveBooking", "Admin", new { id = item.BookingId })"
+                                               class="btn btn-sm btn-success fw-bold"
+                                               onclick="return confirm('Bạn có chắc muốn duyệt đơn này?');">
+                                                <i class="fa-solid fa-check me-1"></i> Duyệt
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success small fw-bold"><i class="fa-solid fa-circle-check"></i> Đã hoàn tất</span>
+                                        }
+
+                                        <!-- Nút Hủy: Hiện khi đơn CHƯA BỊ HỦY -->
+                                        @if (item.Status != "Đã hủy")
+                                        {
+                                            <a href="@Url.Action("CancelBooking", "Admin", new { id = item.BookingId })"
+                                               class="btn btn-sm btn-outline-danger fw-bold"
+                                               onclick="return confirm('Bạn có chắc chắn muốn hủy đơn này? Phòng sẽ được mở lại.');">
+                                                <i class="fa-solid fa-xmark me-1"></i> Hủy
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">Chưa có đơn đặt phòng nào trong hệ thống.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

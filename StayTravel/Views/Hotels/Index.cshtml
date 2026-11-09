@@ -1,0 +1,62 @@
+﻿-*@model StayTravel.Models.RoomFilterViewModel
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<div class="container my-4">
+    <div class="row">
+        <!-- 2. Bộ Lọc Tìm Kiếm -->
+        <div class="col-md-3">
+            <div class="card p-3 shadow-sm border-0">
+                <h4 class="fw-bold mb-3"><i class="fa-solid fa-filter text-warning me-2"></i>Bộ Lọc</h4>
+                <form action="@Url.Action("Index", "Hotels")" method="get">
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Khu Vực</label>
+                        @Html.DropDownList("locationId", new SelectList(Model.Locations, "LocationId", "LocationName", Model.LocationId), "-- Tất cả địa điểm --", new { @class = "form-select" })
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Loại Phòng</label>
+                        @Html.DropDownList("roomTypeId", new SelectList(Model.RoomTypes, "RoomTypeId", "TypeName", Model.RoomTypeId), "-- Tất cả loại phòng --", new { @class = "form-select" })
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giá Từ (VNĐ)</label>
+                        <input type="number" name="minPrice" value="@Model.MinPrice" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giá Đến (VNĐ)</label>
+                        <input type="number" name="maxPrice" value="@Model.MaxPrice" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Áp Dụng Lọc</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh Sách Phòng -->
+        <div class="col-md-9">
+            @if (!Model.Rooms.Any())
+            {
+                <div class="alert alert-warning text-center p-4">
+                    <i class="fa-solid fa-circle-exclamation fa-2x mb-2"></i>
+                    <h5>Rất tiếc! Không tìm thấy kết quả phù hợp hoặc hệ thống chưa hỗ trợ từ khóa này.</h5>
+                </div>
+            }
+            else
+            {
+                <div class="row g-4">
+                    @foreach (var room in Model.Rooms)
+                    {
+                        <div class="col-md-6">
+                            <div class="card h-100 shadow-sm border-0">
+                                <img src="@room.ImageUrl" class="card-img-top" height="200" style="object-fit:cover;" />
+                                <div class="card-body">
+                                    <span class="badge bg-warning text-dark mb-2">@room.RoomType.TypeName</span>
+                                    <h5 class="card-title fw-bold">@(room.Hotel != null ? room.Hotel.HotelName : "Chưa cập nhật") - Phòng @room.RoomNumber</h5>
+                                    <p class="text-danger fw-bold fs-5">@string.Format("{0:N0}", room.Price) VNĐ/Đêm</p>
+                                    <a href="@Url.Action("RoomDetails", "Hotels", new { id = room.RoomId })" class="btn btn-outline-dark btn-sm w-100">Xem Chi Tiết</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

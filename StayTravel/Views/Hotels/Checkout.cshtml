@@ -1,0 +1,32 @@
+﻿@model StayTravel.Models.Room
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; }
+
+<div class="container my-5" style="max-width: 600px;">
+    <div class="card p-4 shadow-sm border-0">
+        <h3 class="fw-bold mb-3 text-center">Xác Nhận Đặt Phòng</h3>
+        <hr />
+        <h5>Khách sạn: <strong>@Model.Hotel.HotelName</strong></h5>
+        <p>Số phòng: @Model.RoomNumber (@Model.RoomType.TypeName)</p>
+        <p class="text-danger fw-bold">Giá: @string.Format("{0:N0}", Model.Price) VNĐ/đêm</p>
+
+        <form action="@Url.Action("ProcessBooking", "Hotels")" method="post">
+            <input type="hidden" name="roomId" value="@Model.RoomId" />
+            <div class="mb-3">
+                <label class="form-label">Ngày Nhận Phòng (Check-in)</label>
+                <input type="date" name="checkIn" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ngày Trả Phòng (Check-out)</label>
+                <input type="date" name="checkOut" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Phương Thức Thanh Toán</label>
+                <select name="paymentMethod" class="form-select">
+                    <option value="Tiền mặt">Thanh toán tại khách sạn (Tiền mặt)</option>
+                    <option value="Chuyển khoản">Chuyển khoản ngân hàng (QR Code)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 fw-bold py-2">Xác Nhận Thanh Toán</button>
+        </form>
+    </div>
+</div>
