@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Admin Portal | StayTravel</title>
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- FontAwesome 6.4 CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        body {
+            overflow-x: hidden;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+            .sidebar .nav-link {
+                border-radius: 8px;
+                padding: 10px 15px;
+                transition: 0.2s;
+            }
+
+                .sidebar .nav-link:hover {
+                    background-color: rgba(255, 255, 255, 0.1);
+                    color: #ffc107 !important;
+                }
+
+        .sidebar-icon {
+            width: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    @{
+        // Lấy tên Action hiện tại để tự động tô sáng (highlight) menu đang đứng
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    }
+
+    <div class="d-flex">
+        <!-- SIDEBAR BÊN TRÁI -->
+        <aside class="sidebar bg-dark text-white p-3 d-flex flex-column justify-content-between shadow">
+            <div>
+                <a href="@Url.Action("Dashboard", "Admin")" class="text-decoration-none d-flex align-items-center mb-3">
+                    <i class="fa-solid fa-hotel text-warning fs-4 me-2"></i>
+                    <h4 class="text-warning fw-bold mb-0">Admin Portal</h4>
+                </a>
+                <hr class="text-secondary" />
+
+                <ul class="nav flex-column">
+                    <!-- Tổng quan / Dashboard -->
+                    <li class="nav-item mb-2">
+                        <a href="@Url.Action("Dashboard", "Admin")"
+                           class="nav-link @(currentAction == "Dashboard" ? "bg-warning text-dark fw-bold" : "text-white")">
+                            <i class="fa-solid fa-chart-line me-2 sidebar-icon"></i> Tổng Quan
+                        </a>
+                    </li>
+
+                    <!-- Quản lý Đặt phòng -->
+                    <li class="nav-item mb-2">
+                        <a href="@Url.Action("BookingsList", "Admin")"
+                           class="nav-link @(currentAction == "BookingsList" ? "bg-warning text-dark fw-bold" : "text-white")">
+                            <i class="fa-solid fa-calendar-check me-2 sidebar-icon"></i> Quản Lý Đặt Phòng
+                        </a>
+                    </li>
+
+                    <!-- Quản lý Khách sạn -->
+                    <li class="nav-item mb-2">
+                        <a href="@Url.Action("HotelsList", "Admin")"
+                           class="nav-link @(currentAction == "HotelsList" || currentAction == "CreateHotel" || currentAction == "EditHotel" ? "bg-warning text-dark fw-bold" : "text-white")">
+                            <i class="fa-solid fa-hotel me-2 sidebar-icon"></i> Quản Lý Khách Sạn
+                        </a>
+                    </li>
+
+                    <!-- Quản lý Phòng -->
+                    <li class="nav-item mb-2">
+                        <a href="@Url.Action("RoomsList", "Admin")"
+                           class="nav-link @(currentAction == "RoomsList" || currentAction == "CreateRoom" || currentAction == "EditRoom" ? "bg-warning text-dark fw-bold" : "text-white")">
+                            <i class="fa-solid fa-door-open me-2 sidebar-icon"></i> Quản Lý Phòng
+                        </a>
+                    </li>
+
+                    <!-- Quản lý Tài khoản -->
+                    <li class="nav-item mb-2">
+                        <a href="@Url.Action("UsersList", "Admin")"
+                           class="nav-link @(currentAction == "UsersList" || currentAction == "EditUser" || currentAction == "AddUser" ? "bg-warning text-dark fw-bold" : "text-white")">
+                            <i class="fa-solid fa-users-gear me-2 sidebar-icon"></i> Quản Lý Tài Khoản
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Chân Sidebar -->
+            <div>
+                <hr class="text-secondary" />
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Home")" class="nav-link text-light">
+                            <i class="fa-solid fa-house me-2 sidebar-icon"></i> Về Trang Chủ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- NỘI DUNG CHÍNH BÊN PHẢI -->
+        <div class="flex-grow-1 d-flex flex-column min-vh-100">
+            <!-- Thanh Header trên cùng -->
+            <header class="bg-white shadow-sm px-4 py-3 d-flex justify-content-between align-items-center">
+                <span class="text-muted fw-semibold">
+                    Hệ thống quản trị khách sạn & đặt phòng
+                </span>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-warning text-dark px-3 py-2">
+                        <i class="fa-solid fa-user-shield me-1"></i> Quản Trị Viên
+                    </span>
+                </div>
+            </header>
+
+            <main class="p-4 flex-grow-1">
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white text-center text-muted py-3 border-top small">
+                &copy; @DateTime.Now.Year - StayTravel Admin System
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS Bundle (Bắt buộc để đóng các thông báo alert-dismissible) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Cho phép các trang con chèn thêm script riêng nếu cần -->
+    @RenderSection("scripts", required: false)
+</body>
+</html>

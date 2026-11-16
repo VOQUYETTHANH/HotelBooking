@@ -1,0 +1,60 @@
+﻿@model StayTravel.Models.Hotel
+@using (Html.BeginForm("ToggleWishlist", "Hotels", FormMethod.Post))
+{
+    @Html.HiddenFor(m => m.HotelId, new { name = "hotelId" })
+    <button type="submit" class="btn btn-outline-danger fw-bold">
+        <i class="fa fa-heart"></i> Yêu thích khách sạn này
+    </button>
+}
+<div class="container my-4">
+    <div class="card border-0 shadow-sm p-4">
+        <div class="row">
+            <div class="col-md-5">
+                <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.HotelName" />
+            </div>
+            <div class="col-md-7">
+                <h2 class="fw-bold">@Model.HotelName</h2>
+                <p class="text-warning">
+                    @for (int i = 0; i < Model.StarRating; i++)
+                    {<i class="fa-solid fa-star"></i>}
+                </p>
+                <p class="text-secondary"><i class="fa-solid fa-location-dot me-2"></i>@Model.Address</p>
+                <p>@Model.Description</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh Sách Loại Phòng Thuộc Khách Sạn -->
+    <h3 class="fw-bold my-4">Các Loại Phòng Hiện Có</h3>
+    <div class="row g-4">
+        @foreach (var room in Model.Rooms)
+        {
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <img src="@room.ImageUrl" class="card-img-top" height="180" style="object-fit:cover;" />
+                    <div class="card-body">
+                        <h5>Phòng @room.RoomNumber (@room.RoomType.TypeName)</h5>
+                        <p class="text-danger fw-bold">@string.Format("{0:N0}", room.Price) VNĐ</p>
+                        <a href="@Url.Action("RoomDetails", "Hotels", new { id = room.RoomId })" class="btn btn-warning btn-sm w-100">Chi Tiết Phòng</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Đánh giá khách sạn -->
+    <h3 class="fw-bold my-4">Đánh Giá Từ Khách Hàng</h3>
+    @foreach (var review in Model.Reviews)
+    {
+        <div class="border-bottom py-2">
+            <div class="d-flex align-items-center">
+                <strong class="me-2">@review.User.FullName</strong>
+                <span class="text-warning small">
+                    @for (int i = 0; i < review.Rating; i++)
+                    {<i class="fa-solid fa-star"></i>}
+                </span>
+            </div>
+            <p class="mb-0 text-muted">@review.Comment</p>
+        </div>
+    }
+</div>

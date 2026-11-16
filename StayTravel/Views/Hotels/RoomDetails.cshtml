@@ -1,0 +1,139 @@
+﻿@model StayTravel.Models.Room
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var busyRanges = (List<StayTravel.Models.BusyRange>)ViewBag.BusyRanges ?? new List<StayTravel.Models.BusyRange>();
+    var freeRanges = (List<StayTravel.Models.BusyRange>)ViewBag.FreeRanges ?? new List<StayTravel.Models.BusyRange>();
+    bool roomClosed = Model.IsAvailable == false;
+
+    // Tự kiểm tra xem khách sạn này đã nằm trong Wishlist chưa dựa vào DB context hoặc Session/Identity
+    bool isWishlisted = false;
+    if (User.Identity.IsAuthenticated)
+    {
+        using (var db = new StayTravel.Models.HotelBookingDBEntities())
+        {
+            var userEmail = User.Identity.Name;
+            var user = db.Users.FirstOrDefault(u => u.Email == userEmail);
+            if (user != null)
+            {
+                isWishlisted = db.Wishlists.Any(w => w.UserId == user.UserId && w.HotelId == Model.HotelId);
+            }
+        }
+    }
+}
+
+<div class="container my-5">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    <div class="row">
+        <div class="col-md-6">
+            <img src="@Model.ImageUrl" class="img-fluid rounded shadow-sm" />
+        </div>
+        <div class="col-md-6">
+            <span class="badge bg-secondary mb-2">@Model.RoomType.TypeName</span>
+            <h2 class="fw-bold">@Model.Hotel.HotelName - Phòng @Model.RoomNumber</h2>
+            <h3 class="text-danger fw-bold my-3">@string.Format("{0:N0}", Model.Price) VNĐ / đêm</h3>
+
+            <p><strong><i class="fa-solid fa-users me-2"></i>Sức chứa:</strong> @Model.Capacity người</p>
+            <p><strong><i class="fa-solid fa-mountain-sun me-2"></i>Tầm nhìn (View):</strong> @Model.OutsideView</p>
+            <p><strong><i class="fa-solid fa-wifi me-2"></i>Tiện ích:</strong> @Model.Amenities</p>
+
+            <!-- Nút Đặt Phòng Ngay -->
+            @if (roomClosed)
+            {
+                <button type="button" class="btn btn-secondary btn-lg w-100 mt-3 fw-bold" disabled>Phòng tạm ngừng nhận đặt</button>
+            }
+            else
+            {
+                <a href="@Url.Action("Checkout", "Hotels", new { roomId = Model.RoomId })" class="btn btn-warning btn-lg w-100 mt-3 fw-bold">Đặt Phòng Ngay</a>
+            }
+
+            <!-- NÚT YÊU THÍCH TỰ ĐỔI TRẠNG THÁI NẾU ĐÃ BẤM -->
+            @using (Html.BeginForm("ToggleWishlist", "Hotels", FormMethod.Post, new { @class = "mt-2" }))
+            {
+                <input type="hidden" name="hotelId" value="@Model.HotelId" />
+                if (isWishlisted)
+                {
+                    <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold">
+                        <i class="fa-solid fa-heart me-2"></i>Bỏ khỏi danh sách yêu thích
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-outline-danger btn-lg w-100 fw-bold">
+                        <i class="fa-regular fa-heart me-2"></i>Thêm Khách Sạn Vào Yêu Thích
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- THỜI GIAN BIỂU CỦA PHÒNG -->
+    <div class="card border-0 shadow-sm mt-5">
+        <div class="card-body p-4">
+            <h4 class="fw-bold mb-3"><i class="fa-solid fa-calendar-days text-warning me-2"></i>Thời gian biểu của phòng</h4>
+            <p class="text-muted small mb-3">Xem trước các ngày phòng đã có người đặt và các ngày còn trống để chọn thời gian phù hợp.</p>
+
+            <div id="roomSchedule"></div>
+            <input type="hidden" id="scheduleRangesJson" value="@ViewBag.RangesJson" />
+
+            <div class="row mt-4 g-4">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-danger"><i class="fa-solid fa-ban me-1"></i>Đã có người đặt</h6>
+                    @if (!busyRanges.Any())
+                    {
+                        <p class="text-muted small mb-0">Chưa có lịch đặt - phòng đang trống hoàn toàn.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush small">
+                            @foreach (var r in busyRanges)
+                            {
+                                <li class="list-group-item px-0">
+                                    @r.Start.ToString("dd/MM/yyyy") → @r.End.ToString("dd/MM/yyyy")
+                                    <span class="text-muted">(@((r.End - r.Start).Days) đêm)</span>
+                                    @if (r.Kind == "blocked")
+                                    {
+                                        <span class="badge bg-secondary ms-1">Không nhận đặt</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-success"><i class="fa-solid fa-circle-check me-1"></i>Còn trống (@ViewBag.ScheduleDays ngày tới)</h6>
+                    @if (!freeRanges.Any())
+                    {
+                        <p class="text-muted small mb-0">Phòng đã kín lịch trong @ViewBag.ScheduleDays ngày tới.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush small">
+                            @foreach (var r in freeRanges)
+                            {
+                                <li class="list-group-item px-0">
+                                    @r.Start.ToString("dd/MM/yyyy") → @r.End.ToString("dd/MM/yyyy")
+                                    <span class="text-muted">(@((r.End - r.Start).Days) đêm)</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="@Url.Content("~/Scripts/myScripts/RoomCalendar.js")"></script>
+    <script>
+                (function () {
+                    var ranges = [];
+                    try { ranges = JSON.parse(document.getElementById("scheduleRangesJson").value || "[]"); } catch (e) { }
+                    new RoomCalendar(document.getElementById("roomSchedule"), { ranges: ranges, selectable: false, months: 2 });
+                })();
+    </script>
+}

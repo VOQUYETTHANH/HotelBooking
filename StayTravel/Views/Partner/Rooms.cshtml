@@ -1,0 +1,115 @@
+﻿@model IEnumerable<StayTravel.Models.PartnerRoomRow>
+@{
+    ViewBag.Title = "Phòng & lịch phòng";
+    Layout = "~/Views/Shared/_LayoutPartner.cshtml";
+    string back = Request.RawUrl;
+}
+
+<div class="container-fluid py-2">
+    <h2 class="fw-bold mb-3"><i class="fa-solid fa-door-open text-warning me-2"></i>Phòng &amp; lịch phòng</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["ErrorMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="card shadow border-0 rounded-4 p-3 mb-3">
+        @using (Html.BeginForm("Rooms", "Partner", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
+        {
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Tìm kiếm</label>
+                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="Số phòng hoặc tên khách sạn..." />
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Khách sạn</label>
+                @Html.DropDownList("hotelId", (SelectList)ViewBag.HotelId, "Tất cả khách sạn", new { @class = "form-select" })
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label fw-semibold">Loại phòng</label>
+                @Html.DropDownList("roomTypeId", (SelectList)ViewBag.RoomTypeId, "Tất cả", new { @class = "form-select" })
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label fw-semibold">Tình trạng hôm nay</label>
+                <select name="state" class="form-select">
+                    <option value="">Tất cả</option>
+                    <option value="free" @(ViewBag.State == "free" ? "selected" : "")>Trống</option>
+                    <option value="reserved" @(ViewBag.State == "reserved" ? "selected" : "")>Đã đặt - chờ nhận</option>
+                    <option value="occupied" @(ViewBag.State == "occupied" ? "selected" : "")>Đang có khách</option>
+                    <option value="blocked" @(ViewBag.State == "blocked" ? "selected" : "")>Đang bảo trì</option>
+                    <option value="maintenance" @(ViewBag.State == "maintenance" ? "selected" : "")>Ngừng nhận đặt</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 d-grid">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Lọc</button>
+            </div>
+        }
+    </div>
+
+    <div class="card shadow border-0 rounded-4 p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Phòng</th>
+                        <th>Loại</th>
+                        <th>Giá / đêm</th>
+                        <th>Tình trạng hôm nay</th>
+                        <th style="min-width:260px">Nhận đặt online</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="6" class="text-center py-4 text-muted">Không có phòng phù hợp.</td></tr>
+                    }
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold">Phòng @row.Room.RoomNumber</div>
+                                <small class="text-muted">@row.Room.Hotel.HotelName</small>
+                            </td>
+                            <td>@row.Room.RoomType.TypeName</td>
+                            <td>@row.Room.Price.ToString("N0") VNĐ</td>
+                            <td>
+                                <span class="badge @row.StateBadge">@row.StateText</span>
+                                @if (!string.IsNullOrEmpty(row.Detail))
+                                {
+                                    <div class="small text-muted mt-1">@row.Detail</div>
+                                }
+                            </td>
+                            <td>
+                                @using (Html.BeginForm("UpdateRoomStatus", "Partner", FormMethod.Post,
+                                    new { @class = "d-flex gap-2", onsubmit = "return confirm('Đổi tình trạng nhận đặt của phòng " + row.Room.RoomNumber + "?');" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("id", row.Room.RoomId)
+                                    @Html.Hidden("returnUrl", back)
+                                    <select name="isAvailable" class="form-select form-select-sm">
+                                        <option value="true" @(row.Room.IsAvailable != false ? "selected" : "")>Sẵn sàng nhận đặt</option>
+                                        <option value="false" @(row.Room.IsAvailable == false ? "selected" : "")>Bảo trì / ngừng nhận đặt</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-warning fw-bold text-nowrap">Lưu</button>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a href="@Url.Action("RoomSchedule", "Partner", new { id = row.Room.RoomId })" class="btn btn-sm btn-outline-dark text-nowrap">
+                                    <i class="fa-solid fa-calendar-days me-1"></i>Lịch phòng
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="small text-muted mt-2">
+            "Ngừng nhận đặt" chỉ chặn khách đặt thêm trên website, không ảnh hưởng các đơn đã có.
+            Khách đặt trực tiếp tại quầy hoặc phòng cần bảo trì thì thêm vào <strong>Lịch phòng</strong>.
+        </div>
+    </div>
+</div>

@@ -1,0 +1,152 @@
+﻿
+@model StayTravel.Models.User
+
+@{
+    ViewBag.Title = "Đăng Ký Tài Khoản - StayTravel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5" style="max-width: 500px;">
+    <div class="card border-0 shadow-lg p-4 rounded-4">
+
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-warning">
+                <i class="fa-solid fa-user-plus me-2"></i>
+                Đăng Ký Thành Viên
+            </h3>
+            <p class="text-muted small">
+                Tạo tài khoản ngay để nhận ưu đãi đặt phòng tốt nhất
+            </p>
+        </div>
+
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(false, "", new { @class = "text-danger small mb-3" })
+
+            <!-- HỌ TÊN -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Họ và tên <span class="text-danger">*</span>
+                </label>
+
+                @Html.TextBoxFor(m => m.FullName, new
+                {
+                    @class = "form-control",
+                    placeholder = "Nguyễn Văn Minh",
+                    required = "required"
+                })
+
+                @Html.ValidationMessageFor(m => m.FullName, "",
+                         new { @class = "text-danger small" })
+            </div>
+
+            <!-- GMAIL -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Gmail <span class="text-danger">*</span>
+                </label>
+
+                @Html.TextBoxFor(m => m.Email, new
+                {
+                    @class = "form-control",
+                    type = "email",
+                    placeholder = "example@gmail.com",
+                    required = "required",
+                    pattern = "[A-Za-z0-9][A-Za-z0-9._%+-]*@gmail[.]com",
+                    title = "Vui lòng nhập Gmail có dạng example@gmail.com"
+                })
+
+                @Html.ValidationMessageFor(m => m.Email, "",
+                         new { @class = "text-danger small" })
+            </div>
+
+            <!-- MẬT KHẨU -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Mật khẩu <span class="text-danger">*</span>
+                </label>
+
+                @Html.PasswordFor(m => m.PasswordHash, new
+                {
+                    @class = "form-control",
+                    placeholder = "Nhập mật khẩu",
+                    required = "required",
+                    minlength = "9",
+                    pattern = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{9,}",
+                    title = "Mật khẩu cần ít nhất 9 ký tự, gồm chữ thường, chữ hoa, số và ký tự đặc biệt."
+                })
+
+                @Html.ValidationMessageFor(m => m.PasswordHash, "",
+                         new { @class = "text-danger small" })
+
+                <div class="mt-2 p-3 bg-light rounded">
+                    <small class="fw-bold">Yêu cầu mật khẩu:</small>
+                    <ul class="small text-muted mb-0 ps-3">
+                        <li>Ít nhất 9 ký tự</li>
+                        <li>Có chữ thường (a-z)</li>
+                        <li>Có chữ hoa (A-Z)</li>
+                        <li>Có chữ số (0-9)</li>
+                        <li>Có ký tự đặc biệt (!, #, $, ...)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- NHẬP LẠI MẬT KHẨU -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Nhập lại mật khẩu <span class="text-danger">*</span>
+                </label>
+
+                <input type="password"
+                       name="ConfirmPassword"
+                       class="form-control"
+                       placeholder="Nhập lại mật khẩu"
+                       required
+                       minlength="9" />
+
+                @Html.ValidationMessage(
+                         "ConfirmPassword",
+                         "",
+                         new { @class = "text-danger small" }
+                     )
+            </div>
+
+            <!-- SỐ ĐIỆN THOẠI -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Số điện thoại
+                </label>
+
+                @Html.TextBoxFor(m => m.PhoneNumber, new
+                {
+                    @class = "form-control",
+                    placeholder = "0988765432"
+                })
+
+                @Html.ValidationMessageFor(m => m.PhoneNumber, "",
+                         new { @class = "text-danger small" })
+            </div>
+
+            <button type="submit"
+                    class="btn btn-warning w-100 fw-bold py-2 mt-2 shadow-sm">
+                <i class="fa-solid fa-user-check me-2"></i>
+                Đăng Ký Ngay
+            </button>
+        }
+
+        <hr class="my-4" />
+
+        <div class="text-center">
+            <p class="mb-0">
+                Đã có tài khoản?
+                <a href="@Url.Action("Login", "Account")"
+                   class="text-warning fw-bold text-decoration-none">
+                    Đăng nhập tại đây
+                </a>
+            </p>
+        </div>
+
+    </div>
+</div>

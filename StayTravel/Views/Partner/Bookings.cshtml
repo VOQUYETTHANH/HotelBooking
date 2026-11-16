@@ -1,0 +1,163 @@
+﻿@model IEnumerable<StayTravel.Models.Booking>
+@{
+    ViewBag.Title = "Đơn đặt phòng";
+    Layout = "~/Views/Shared/_LayoutPartner.cshtml";
+    string back = Request.RawUrl;
+    DateTime today = DateTime.Today;
+    var statuses = StayTravel.Models.BookingRules.AllStatuses;
+}
+
+<div class="container-fluid py-2">
+    <h2 class="fw-bold mb-3"><i class="fa-solid fa-calendar-check text-warning me-2"></i>Đơn đặt phòng</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["ErrorMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="card shadow border-0 rounded-4 p-3 mb-3">
+        @using (Html.BeginForm("Bookings", "Partner", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
+        {
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label fw-semibold">Tìm kiếm</label>
+                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control"
+                       placeholder="Mã đơn, tên / email / SĐT khách, số phòng..." />
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Khách sạn</label>
+                @Html.DropDownList("hotelId", (SelectList)ViewBag.HotelId, "Tất cả khách sạn", new { @class = "form-select" })
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Trạng thái</label>
+                <select name="status" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    @foreach (var s in statuses)
+                    {
+                        <option value="@s" @(ViewBag.Status == s ? "selected" : "")>@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 d-grid">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Lọc</button>
+            </div>
+            <div class="col-12 d-flex flex-wrap gap-2">
+                <a href="@Url.Action("Bookings", "Partner")" class="btn btn-outline-secondary btn-sm">Xóa bộ lọc</a>
+                <a href="@Url.Action("Bookings", "Partner", new { quick = "arrivals" })" class="btn btn-outline-success btn-sm">Khách đến hôm nay</a>
+                <a href="@Url.Action("Bookings", "Partner", new { quick = "inhouse" })" class="btn btn-outline-primary btn-sm">Khách đang ở</a>
+                <a href="@Url.Action("Bookings", "Partner", new { quick = "overdue" })" class="btn btn-outline-danger btn-sm">Quá hạn nhận phòng (@ViewBag.OverdueCount)</a>
+            </div>
+        }
+    </div>
+
+    @if ((int)ViewBag.OverdueCount > 0)
+    {
+        <form action="@Url.Action("CancelOverdue", "Partner")" method="post" class="mb-3"
+              onsubmit="return confirm('Hủy toàn bộ đơn quá hạn nhận phòng với lý do Quá hạn?');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@back" />
+            <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fa-solid fa-ban me-1"></i>Hủy @ViewBag.OverdueCount đơn quá hạn không nhận phòng
+            </button>
+        </form>
+    }
+
+    <div class="card shadow border-0 rounded-4 p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Khách sạn / Phòng</th>
+                        <th>Thời gian ở</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th style="min-width:400px">Cập nhật trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Không có đơn đặt phòng phù hợp.</td></tr>
+                    }
+                    @foreach (var item in Model)
+                    {
+                        bool overdue = item.CheckInDate < today && (item.Status == "Chờ duyệt" || item.Status == "Đã duyệt");
+                        <tr class="@(overdue ? "table-danger" : "")">
+                            <td class="fw-bold text-primary">#@item.BookingId</td>
+                            <td>
+                                <div class="fw-bold">@item.User.FullName</div>
+                                <small class="text-muted">@item.User.Email<br />@item.User.PhoneNumber</small>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">@item.Room.Hotel.HotelName</div>
+                                <small class="text-muted">Phòng: @item.Room.RoomNumber</small>
+                            </td>
+                            <td>
+                                <small>Nhận: @item.CheckInDate.ToString("dd/MM/yyyy")</small><br />
+                                <small>Trả: @item.CheckOutDate.ToString("dd/MM/yyyy")</small>
+                            </td>
+                            <td class="text-danger fw-bold">@item.TotalPrice.ToString("N0") VNĐ<br /><small class="text-muted fw-normal">@item.PaymentMethod</small></td>
+                            <td>
+                                <span class="badge bg-info text-dark">@item.Status</span>
+                                @if (overdue)
+                                {
+                                    <div class="small text-danger fw-bold mt-1">Quá hạn nhận phòng</div>
+                                }
+                                @if (item.Status == "Đã hủy" && !string.IsNullOrEmpty(item.CancelReason))
+                                {
+                                    <div class="small text-muted mt-1">Lý do: @item.CancelReason</div>
+                                }
+                            </td>
+                            <td>
+                                @using (Html.BeginForm("UpdateBookingStatus", "Partner", FormMethod.Post,
+                                    new { @class = "d-flex gap-2 align-items-center", onsubmit = "return confirmStatus(this);" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("id", item.BookingId)
+                                    @Html.Hidden("returnUrl", back)
+                                    <select name="status" class="form-select form-select-sm" onchange="toggleReason(this)">
+                                        @foreach (var s in statuses)
+                                        {
+                                            <option value="@s" @(item.Status == s ? "selected" : "")>@s</option>
+                                        }
+                                    </select>
+                                    <select name="cancelReason" class="form-select form-select-sm cancel-reason" style="@(item.Status == "Đã hủy" ? "" : "display:none;")">
+                                        <option value="">-- Lý do hủy --</option>
+                                        @foreach (var reason in StayTravel.Models.BookingRules.CancelReasons)
+                                        {
+                                            <option value="@reason" @(item.CancelReason == reason ? "selected" : "")>@reason</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-warning text-nowrap fw-bold">Lưu</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function toggleReason(sel) {
+            var r = sel.form.querySelector('.cancel-reason');
+            if (r) r.style.display = sel.value === 'Đã hủy' ? '' : 'none';
+        }
+        function confirmStatus(form) {
+            var st = form.querySelector('select[name="status"]').value;
+            var rs = form.querySelector('select[name="cancelReason"]');
+            if (st === 'Đã hủy' && rs && !rs.value) {
+                alert('Vui lòng chọn lý do hủy (Khách hủy / No-show / Quá hạn).');
+                return false;
+            }
+            return confirm('Xác nhận chuyển đơn #' + form.querySelector('input[name="id"]').value + ' sang "' + st + '"?');
+        }
+    </script>
+}

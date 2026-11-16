@@ -1,0 +1,150 @@
+﻿@model IEnumerable<StayTravel.Models.Booking>
+@{
+    ViewBag.Title = "Quản Lý Đặt Phòng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid py-2">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark"><i class="fa-solid fa-calendar-check text-warning me-2"></i>Quản Lý Đơn Đặt Phòng</h2>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="card shadow border-0 rounded-4 p-3 mb-4">
+        @using (Html.BeginForm("BookingsList", "Admin", FormMethod.Get, new { @class = "row g-3 align-items-end" }))
+        {
+            <div class="col-lg-5 col-md-6">
+                <label class="form-label fw-semibold">Tìm người đặt hoặc khách sạn</label>
+                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control"
+                       placeholder="Nhập tên người đặt hoặc tên khách sạn..." />
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Khách sạn</label>
+                @Html.DropDownList("hotelId", (SelectList)ViewBag.HotelId, "Tất cả khách sạn", new { @class = "form-select" })
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label fw-semibold">Trạng thái đơn</label>
+                <select name="status" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    @foreach (var s in new[] { "Chờ duyệt", "Đã duyệt", "Đã nhận phòng", "Đã thanh toán", "Đã trả phòng", "Đã hủy" })
+                    {
+                        <option value="@s" @(ViewBag.Status == s ? "selected" : "")>@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-1 col-md-6 d-grid">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Lọc</button>
+            </div>
+            <div class="col-12">
+                <a href="@Url.Action("BookingsList", "Admin")" class="btn btn-outline-secondary btn-sm">Xóa bộ lọc</a>
+            </div>
+        }
+    </div>
+
+    <div class="card shadow border-0 rounded-4 p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Khách Sạn / Phòng</th>
+                        <th>Thời Gian Ở</th>
+                        <th>Tổng Tiền</th>
+                        <th>Trạng Thái</th>
+                        <th style="min-width:380px">Thao Tác Quản Trị</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">#@item.BookingId</td>
+                                <td>
+                                    <div class="fw-bold">@(item.User != null ? item.User.FullName : "Khách vãng lai")</div>
+                                    <small class="text-muted">@(item.User != null ? item.User.Email : "")</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@(item.Room != null && item.Room.Hotel != null ? item.Room.Hotel.HotelName : "—")</div>
+                                    <small class="text-muted">Phòng: @(item.Room != null ? item.Room.RoomNumber : item.RoomId.ToString())</small>
+                                </td>
+                                <td>
+                                    <small><i class="fa-solid fa-arrow-right-to-bracket text-success me-1"></i>@item.CheckInDate.ToString("dd/MM/yyyy")</small><br />
+                                    <small><i class="fa-solid fa-arrow-right-from-bracket text-danger me-1"></i>@item.CheckOutDate.ToString("dd/MM/yyyy")</small>
+                                </td>
+                                <td class="text-danger fw-bold">@item.TotalPrice.ToString("N0") VNĐ</td>
+                                <td>
+                                    <span class="badge bg-info text-dark px-2 py-1">@item.Status</span>
+                                    @if (item.Status == "Đã hủy" && !string.IsNullOrEmpty(item.CancelReason))
+                                    {
+                                        <div class="small text-muted mt-1">Lý do: @item.CancelReason</div>
+                                    }
+                                </td>
+                                <td>
+                                    @using (Html.BeginForm("UpdateBookingStatus", "Admin", FormMethod.Post,
+                                        new { @class = "d-flex gap-2 align-items-center", onsubmit = "return confirmBookingStatus(this);" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("id", item.BookingId)
+                                        <select name="status" class="form-select form-select-sm" required onchange="toggleCancelReason(this)">
+                                            @foreach (var s in new[] { "Chờ duyệt", "Đã duyệt", "Đã nhận phòng", "Đã thanh toán", "Đã trả phòng", "Đã hủy" })
+                                            {
+                                                <option value="@s" @(item.Status == s ? "selected" : "")>@s</option>
+                                            }
+                                        </select>
+                                        <select name="cancelReason" class="form-select form-select-sm cancel-reason" style="@(item.Status == "Đã hủy" ? "" : "display:none;")">
+                                            <option value="">-- Lý do hủy --</option>
+                                            @foreach (var reason in StayTravel.Models.BookingRules.CancelReasons)
+                                            {
+                                                <option value="@reason" @(item.CancelReason == reason ? "selected" : "")>@reason</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-warning text-nowrap fw-bold">Xác nhận</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy đơn đặt phòng phù hợp.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+            function toggleCancelReason(statusSelect) {
+                var reason = statusSelect.form.querySelector('.cancel-reason');
+                if (reason) reason.style.display = statusSelect.value === 'Đã hủy' ? '' : 'none';
+            }
+
+            function confirmBookingStatus(form) {
+                var st = form.querySelector('select[name="status"]').value;
+                var rs = form.querySelector('select[name="cancelReason"]');
+                if (st === 'Đã hủy' && rs && !rs.value) {
+                    alert('Vui lòng chọn lý do hủy (Khách hủy / No-show / Quá hạn).');
+                    return false;
+                }
+                var select = form.querySelector('select[name="status"]');
+                var selectedText = select.options[select.selectedIndex].text;
+                return confirm('Bạn có chắc chắn muốn chuyển đơn đặt phòng #' +
+                    form.querySelector('input[name="id"]').value +
+                    ' sang trạng thái "' + selectedText + '" không?');
+            }
+</script>

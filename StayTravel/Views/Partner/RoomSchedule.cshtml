@@ -1,0 +1,183 @@
+﻿@model StayTravel.Models.RoomScheduleViewModel
+@{
+    ViewBag.Title = "Lịch phòng " + Model.Room.RoomNumber;
+    Layout = "~/Views/Shared/_LayoutPartner.cshtml";
+    DateTime today = DateTime.Today;
+}
+
+<div class="container-fluid py-2">
+    <a href="@Url.Action("Rooms", "Partner")" class="text-decoration-none small"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách phòng</a>
+    <h2 class="fw-bold my-2"><i class="fa-solid fa-calendar-days text-warning me-2"></i>Lịch phòng @Model.Room.RoomNumber - @Model.Room.Hotel.HotelName</h2>
+    <p class="text-muted">@Model.Room.RoomType.TypeName - @Model.Room.Price.ToString("N0") VNĐ/đêm</p>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["ErrorMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="row g-4">
+        <div class="col-xl-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Lịch phòng</h5>
+                    <div id="partnerCalendar"></div>
+                    <input type="hidden" id="rangesJson" value="@Model.RangesJson" />
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Thêm lịch cho phòng</h5>
+                    <p class="small text-muted">
+                        Dùng khi khách đặt trực tiếp tại quầy / qua điện thoại (không qua website), hoặc phòng cần bảo trì.
+                        Các ngày này sẽ bị khóa trên website, khách không đặt trùng được.
+                    </p>
+                    @using (Html.BeginForm("AddBlock", "Partner", FormMethod.Post, new { id = "blockForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="roomId" value="@Model.Room.RoomId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Loại</label>
+                            <select name="blockType" class="form-select">
+                                <option value="Đặt trực tiếp">Khách đặt trực tiếp (tại quầy / điện thoại)</option>
+                                <option value="Bảo trì">Bảo trì / không nhận khách</option>
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Từ ngày (đêm đầu)</label>
+                                <input type="date" name="startDate" class="form-control" min="@today.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Ngày trả phòng</label>
+                                <input type="date" name="endDate" class="form-control" min="@today.AddDays(1).ToString("yyyy-MM-dd")" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ghi chú (tên khách, SĐT...)</label>
+                            <input type="text" name="note" maxlength="255" class="form-control" placeholder="VD: Anh Nam - 0901234567" />
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">Thêm vào lịch</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header fw-bold">Đơn đặt trên website (sắp tới)</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Đơn</th><th>Khách</th><th>Thời gian</th><th>Trạng thái</th></tr></thead>
+                        <tbody>
+                            @if (!Model.Bookings.Any())
+                            {
+                                <tr><td colspan="4" class="text-center text-muted py-3">Chưa có đơn nào.</td></tr>
+                            }
+                            @foreach (var b in Model.Bookings)
+                            {
+                                <tr>
+                                    <td>#@b.BookingId</td>
+                                    <td>@b.User.FullName</td>
+                                    <td>@b.CheckInDate.ToString("dd/MM") → @b.CheckOutDate.ToString("dd/MM/yyyy")</td>
+                                    <td><span class="badge bg-info text-dark">@b.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header fw-bold">Lịch do khách sạn sắp xếp</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Loại</th><th>Thời gian</th><th>Ghi chú</th><th></th></tr></thead>
+                        <tbody>
+                            @if (!Model.Blocks.Any())
+                            {
+                                <tr><td colspan="4" class="text-center text-muted py-3">Chưa có lịch nào.</td></tr>
+                            }
+                            @foreach (var k in Model.Blocks)
+                            {
+                                <tr>
+                                    <td><span class="badge @(k.BlockType == "Bảo trì" ? "bg-secondary" : "bg-warning text-dark")">@k.BlockType</span></td>
+                                    <td>@k.StartDate.ToString("dd/MM") → @k.EndDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="small">@k.Note</td>
+                                    <td class="text-end">
+                                        @using (Html.BeginForm("DeleteBlock", "Partner", FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Xóa lịch này? Các ngày đó sẽ mở lại cho khách đặt.');" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@k.BlockId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa (khách không đến / kết thúc sớm)"><i class="fa-solid fa-trash"></i></button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body">
+            <h6 class="fw-bold text-success">Các khoảng còn trống (60 ngày tới)</h6>
+            @if (!Model.FreeRanges.Any())
+            {
+                <p class="text-muted small mb-0">Phòng đã kín lịch trong 60 ngày tới.</p>
+            }
+            else
+            {
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var f in Model.FreeRanges)
+                    {
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle fw-normal">
+                            @f.Start.ToString("dd/MM") → @f.End.ToString("dd/MM/yyyy") (@((f.End - f.Start).Days) đêm)
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/myScripts/RoomCalendar.js")"></script>
+    <script>
+        (function () {
+            var ranges = [];
+            try { ranges = JSON.parse(document.getElementById("rangesJson").value || "[]"); } catch (e) { }
+            new RoomCalendar(document.getElementById("partnerCalendar"), { ranges: ranges, selectable: false, months: 2 });
+
+            // Ngày trả phòng phải sau ngày bắt đầu
+            var form = document.getElementById("blockForm");
+            var start = form.querySelector('input[name="startDate"]');
+            var end = form.querySelector('input[name="endDate"]');
+            start.addEventListener("change", function () {
+                if (!start.value) return;
+                var d = new Date(start.value + "T00:00:00");
+                d.setDate(d.getDate() + 1);
+                var m = ("0" + (d.getMonth() + 1)).slice(-2), day = ("0" + d.getDate()).slice(-2);
+                end.min = d.getFullYear() + "-" + m + "-" + day;
+                if (end.value && end.value <= start.value) end.value = "";
+            });
+            form.addEventListener("submit", function (e) {
+                if (start.value && end.value && end.value <= start.value) {
+                    e.preventDefault();
+                    alert("Ngày trả phòng phải sau ngày bắt đầu.");
+                }
+            });
+        })();
+    </script>
+}

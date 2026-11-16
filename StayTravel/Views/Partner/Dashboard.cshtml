@@ -1,0 +1,168 @@
+﻿@model StayTravel.Models.PartnerDashboardViewModel
+@{
+    ViewBag.Title = "Việc hôm nay";
+    Layout = "~/Views/Shared/_LayoutPartner.cshtml";
+}
+
+@helper ActionButton(int bookingId, string status, string reason, string label, string cssClass, string confirmText, string returnUrl)
+{
+    <form action="@System.Web.VirtualPathUtility.ToAbsolute("~/Partner/UpdateBookingStatus")" method="post" class="d-inline"
+          onsubmit="return confirm('@confirmText');">
+        @System.Web.Helpers.AntiForgery.GetHtml()
+        <input type="hidden" name="id" value="@bookingId" />
+        <input type="hidden" name="status" value="@status" />
+        <input type="hidden" name="cancelReason" value="@reason" />
+        <input type="hidden" name="returnUrl" value="@returnUrl" />
+        <button type="submit" class="btn btn-sm @cssClass">@label</button>
+    </form>
+}
+
+@{ string back = Request.RawUrl; }
+
+<div class="container-fluid py-2">
+    <h2 class="fw-bold mb-1"><i class="fa-solid fa-chart-line text-warning me-2"></i>Việc hôm nay</h2>
+    <p class="text-muted">@Model.BusinessName - @DateTime.Today.ToString("dddd, dd/MM/yyyy")</p>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["ErrorMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card bg-primary text-white p-3"><div>Khách sạn / Phòng</div><h3>@Model.Hotels.Count / @Model.TotalRooms</h3></div></div>
+        <div class="col-md-3"><div class="card bg-warning text-dark p-3"><div>Đơn chờ duyệt</div><h3>@Model.PendingCount</h3></div></div>
+        <div class="col-md-3"><div class="card bg-success text-white p-3"><div>Khách đang ở</div><h3>@Model.InHouse.Count</h3></div></div>
+        <div class="col-md-3"><div class="card bg-secondary text-white p-3"><div>Phòng ngừng nhận đặt</div><h3>@Model.MaintenanceRooms</h3></div></div>
+    </div>
+
+    @if (Model.Overdue.Any())
+    {
+        <div class="card border-danger shadow-sm mb-4">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-triangle-exclamation me-2"></i>Quá hạn nhận phòng (@Model.Overdue.Count)</span>
+                <form action="@Url.Action("CancelOverdue", "Partner")" method="post" onsubmit="return confirm('Hủy toàn bộ @Model.Overdue.Count đơn quá hạn với lý do Quá hạn?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@back" />
+                    <button type="submit" class="btn btn-light btn-sm fw-bold">Hủy tất cả (Quá hạn)</button>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Đơn</th><th>Khách</th><th>Phòng</th><th>Ngày nhận</th><th>Trạng thái</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var b in Model.Overdue)
+                        {
+                            <tr>
+                                <td>#@b.BookingId</td>
+                                <td>@b.User.FullName<br /><small class="text-muted">@b.User.PhoneNumber</small></td>
+                                <td>@b.Room.Hotel.HotelName - @b.Room.RoomNumber</td>
+                                <td class="text-danger">@b.CheckInDate.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge bg-info text-dark">@b.Status</span></td>
+                                <td class="text-end text-nowrap">
+                                    @ActionButton(b.BookingId, "Đã nhận phòng", "", "Khách đã đến - nhận phòng", "btn-success", "Chuyển đơn #" + b.BookingId + " sang Đã nhận phòng?", back)
+                                    @ActionButton(b.BookingId, "Đã hủy", "Quá hạn", "Hủy (quá hạn)", "btn-outline-danger", "Hủy đơn #" + b.BookingId + " vì quá hạn?", back)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold"><i class="fa-solid fa-person-walking-luggage me-2 text-success"></i>Khách đến hôm nay (@Model.ArrivalsToday.Count)</div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Đơn</th><th>Khách</th><th>Phòng</th><th>Ở đến</th><th>Thanh toán</th><th>Trạng thái</th><th></th></tr></thead>
+                <tbody>
+                    @if (!Model.ArrivalsToday.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-3">Không có khách dự kiến đến hôm nay.</td></tr>
+                    }
+                    @foreach (var b in Model.ArrivalsToday)
+                    {
+                        <tr>
+                            <td>#@b.BookingId</td>
+                            <td>@b.User.FullName<br /><small class="text-muted">@b.User.PhoneNumber</small></td>
+                            <td>@b.Room.Hotel.HotelName - @b.Room.RoomNumber</td>
+                            <td>@b.CheckOutDate.ToString("dd/MM/yyyy")</td>
+                            <td>@b.PaymentMethod</td>
+                            <td><span class="badge bg-info text-dark">@b.Status</span></td>
+                            <td class="text-end text-nowrap">
+                                @ActionButton(b.BookingId, "Đã nhận phòng", "", "Nhận phòng", "btn-success", "Check-in đơn #" + b.BookingId + "?", back)
+                                @ActionButton(b.BookingId, "Đã hủy", "No-show", "Không đến", "btn-outline-danger", "Đánh dấu khách không đến và hủy đơn #" + b.BookingId + "?", back)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold"><i class="fa-solid fa-bed me-2 text-primary"></i>Khách đang ở (@Model.InHouse.Count)</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Đơn</th><th>Khách</th><th>Phòng</th><th>Trả phòng</th><th></th></tr></thead>
+                        <tbody>
+                            @if (!Model.InHouse.Any())
+                            {
+                                <tr><td colspan="5" class="text-center text-muted py-3">Chưa có khách đang ở.</td></tr>
+                            }
+                            @foreach (var b in Model.InHouse)
+                            {
+                                <tr>
+                                    <td>#@b.BookingId</td>
+                                    <td>@b.User.FullName</td>
+                                    <td>@b.Room.RoomNumber</td>
+                                    <td>@b.CheckOutDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end text-nowrap">
+                                        @if (b.Status == "Đã nhận phòng")
+                                        {
+                                            @ActionButton(b.BookingId, "Đã thanh toán", "", "Đã thanh toán", "btn-outline-success", "Xác nhận đơn #" + b.BookingId + " đã thanh toán?", back)
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold"><i class="fa-solid fa-person-walking-arrow-right me-2 text-danger"></i>Trả phòng hôm nay / trễ hạn (@Model.DeparturesToday.Count)</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Đơn</th><th>Khách</th><th>Phòng</th><th>Hạn trả</th><th></th></tr></thead>
+                        <tbody>
+                            @if (!Model.DeparturesToday.Any())
+                            {
+                                <tr><td colspan="5" class="text-center text-muted py-3">Không có khách cần trả phòng.</td></tr>
+                            }
+                            @foreach (var b in Model.DeparturesToday)
+                            {
+                                <tr>
+                                    <td>#@b.BookingId</td>
+                                    <td>@b.User.FullName</td>
+                                    <td>@b.Room.RoomNumber</td>
+                                    <td>@b.CheckOutDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end">
+                                        @ActionButton(b.BookingId, "Đã trả phòng", "", "Trả phòng", "btn-primary", "Xác nhận khách đơn #" + b.BookingId + " đã trả phòng?", back)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,125 @@
+﻿
+@model StayTravel.Models.Room
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Xác Nhận Đặt Phòng";
+}
+
+<div class="container my-5" style="max-width: 760px;">
+    <div class="card p-4 shadow-sm border-0">
+
+        <h3 class="fw-bold mb-3 text-center">
+            Xác Nhận Đặt Phòng
+        </h3>
+
+        <hr />
+
+        <h5>
+            Khách sạn:
+            <strong>@Model.Hotel.HotelName</strong>
+        </h5>
+
+        <p>
+            Số phòng: @Model.RoomNumber
+            (@Model.RoomType.TypeName)
+        </p>
+
+        <p class="text-danger fw-bold">
+            Giá: @string.Format("{0:N0}", Model.Price) VNĐ/đêm
+        </p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @ViewBag.Error
+            </div>
+        }
+
+        <div id="dateError"
+             class="alert alert-danger"
+             style="display:none;">
+        </div>
+
+        <div class="alert alert-info small">
+            <strong>Lưu ý:</strong>
+            Các ngày màu đỏ đã có người đặt (hoặc phòng không nhận khách) nên không thể chọn.
+            Bạn có thể trả phòng đúng vào ngày người khác nhận phòng.
+        </div>
+
+        <div id="bookedDates" class="mb-3">
+            <strong class="d-block mb-2">
+                Lịch phòng đã được đặt:
+            </strong>
+
+            <div id="bookedList" class="small text-muted">
+            </div>
+        </div>
+
+        <form action="@Url.Action("ProcessBooking", "Hotels")"
+              method="post"
+              id="bookingForm"
+              data-price="@Model.Price.ToString("0", System.Globalization.CultureInfo.InvariantCulture)"
+              data-max-nights="@StayTravel.Models.RoomAvailability.MaxNights">
+
+            @Html.AntiForgeryToken()
+
+            <!-- Nhan du lieu lich da dat tu Controller -->
+            <input type="hidden"
+                   id="bookedRangesJson"
+                   value="@ViewBag.BookedRanges" />
+
+            <input type="hidden"
+                   name="roomId"
+                   value="@Model.RoomId" />
+
+            <!-- Ngày được chọn bằng lịch bên dưới và gửi lên server qua 2 ô ẩn -->
+            <input type="hidden" name="checkIn" id="checkIn" value="@ViewBag.PrevCheckIn" />
+            <input type="hidden" name="checkOut" id="checkOut" value="@ViewBag.PrevCheckOut" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Chọn ngày nhận phòng và trả phòng
+                </label>
+                <div id="roomCalendar"></div>
+                <button type="button" id="resetDates" class="btn btn-outline-secondary btn-sm mt-2">
+                    Chọn lại ngày
+                </button>
+            </div>
+
+            <div id="selectionSummary" class="alert alert-secondary small"></div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    Phương Thức Thanh Toán
+                </label>
+
+                <select name="paymentMethod"
+                        class="form-select"
+                        required>
+
+                    <option value="Tiền mặt">
+                        Thanh toán tại khách sạn (Tiền mặt)
+                    </option>
+
+                    <option value="Chuyển khoản">
+                        Chuyển khoản ngân hàng (QR Code)
+                    </option>
+                </select>
+            </div>
+
+            <button type="submit"
+                    id="submitButton"
+                    class="btn btn-warning w-100 fw-bold py-2">
+                Xác Nhận Thanh Toán
+            </button>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="@Url.Content("~/Scripts/myScripts/RoomCalendar.js")"></script>
+    <script src="@Url.Content("~/Scripts/myScripts/CheckOut.js")"></script>
+}

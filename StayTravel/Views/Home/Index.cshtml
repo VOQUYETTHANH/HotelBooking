@@ -1,0 +1,53 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var locations = ViewBag.Locations as List<StayTravel.Models.Location>;
+    var hotels = ViewBag.FeaturedHotels as List<StayTravel.Models.Hotel>;
+}
+<div class="p-5 text-center bg-image rounded-3" style="background-image: url('/Images/hcm.jpg'); background-size: cover;">
+    <div class="mask p-5 text-white bg-dark bg-opacity-50">
+        <h1 class="mb-3 display-4 fw-bold">Khám Phá Kì Nghỉ Trong Mơ</h1>
+        <p class="mb-3 fs-5">Hệ thống đặt phòng khách sạn hàng đầu tại các khu du lịch nổi tiếng</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <h2 class="fw-bold mb-4 border-start border-warning border-4 ps-2">Địa Điểm Du Lịch Nổi Bật</h2>
+    <div class="row g-4">
+        @foreach (var loc in locations)
+        {
+            <div class="col-md-4">
+                <a href="@Url.Action("Index", "Hotels", new { locationId = loc.LocationId })" class="text-decoration-none text-dark">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@loc.ImageUrl" class="card-img-top" height="220" style="object-fit:cover;" alt="@loc.LocationName" />
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">@loc.LocationName</h5>
+                            <p class="card-text text-muted">@loc.Description</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+    <h2 class="fw-bold my-4 border-start border-warning border-4 ps-2">Khách Sạn Hàng Đầu</h2>
+    <div class="row g-4">
+        @foreach (var h in hotels)
+        {
+            <div class="col-md-4">
+                <a href="@Url.Action("Details", "Hotels", new { id = h.HotelId })" class="text-decoration-none text-dark">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="@h.ImageUrl" class="card-img-top" height="200" style="object-fit:cover;" alt="@h.HotelName" />
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">@h.HotelName</h5>
+                            <p class="text-warning mb-1">
+                                @for (int i = 0; i < h.StarRating; i++)
+                                {<i class="fa-solid fa-star"></i>}
+                            </p>
+                            <p class="card-text small text-secondary"><i class="fa-solid fa-location-dot me-1"></i>@h.Address</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>
