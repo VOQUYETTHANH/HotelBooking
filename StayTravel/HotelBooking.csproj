@@ -227,6 +227,10 @@
     <Content Include="Images\nhatrang-hotel2.jpg" />
     <Content Include="Images\nhatrang-hotel3.jpg" />
     <Content Include="Images\nhatrang.jpg" />
+    <Content Include="Images\room-default1.jpg" />
+    <Content Include="Images\room-default2.jpg" />
+    <Content Include="Images\room-default4.jpg" />
+    <Content Include="Images\room-default3.jpg" />
     <Content Include="Models\Model1.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>Model1.edmx</DependentUpon>
@@ -301,6 +305,7 @@
     <Content Include="Views\Partner\Bookings.cshtml" />
     <Content Include="Views\Partner\Rooms.cshtml" />
     <Content Include="Views\Partner\RoomSchedule.cshtml" />
+    <Content Include="Views\Admin\AddUser.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

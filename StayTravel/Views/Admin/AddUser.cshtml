@@ -1,0 +1,94 @@
+﻿
+@model StayTravel.Models.User
+
+@{
+    ViewBag.Title = "Thêm Người Dùng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container my-3" style="max-width: 600px;">
+    <div class="card shadow-sm p-4 border-0">
+
+        <h3 class="fw-bold mb-3">Thêm Tài Khoản Người Dùng</h3>
+        <hr />
+
+        @using (Html.BeginForm("AddUser", "Admin", FormMethod.Post,
+            new { enctype = "multipart/form-data" }))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-3" })
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Họ và Tên</label>
+                @Html.TextBoxFor(m => m.FullName, new
+                {
+                    @class = "form-control",
+                    placeholder = "Nhập họ và tên",
+                    required = "required"
+                })
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email</label>
+                @Html.TextBoxFor(m => m.Email, new
+                {
+                    @class = "form-control",
+                    type = "email",
+                    placeholder = "example@gmail.com",
+                    required = "required"
+                })
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Mật Khẩu</label>
+                <input type="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="Nhập mật khẩu"
+                       required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Số Điện Thoại</label>
+                @Html.TextBoxFor(m => m.PhoneNumber, new
+                {
+                    @class = "form-control",
+                    type = "tel",
+                    placeholder = "Nhập số điện thoại"
+                })
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Vai Trò Tài Khoản</label>
+                @Html.DropDownListFor(m => m.RoleId,
+                         new List<SelectListItem>
+                         {
+                        new SelectListItem { Text = "Quản trị viên (Admin)", Value = "1" },
+                        new SelectListItem { Text = "Khách hàng (Customer)", Value = "2" },
+                        new SelectListItem { Text = "Đối tác (Partner)", Value = "3" }
+                         },
+                         "-- Chọn vai trò --",
+                         new { @class = "form-select", required = "required" })
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Hình Ảnh Đại Diện</label>
+                <input type="file"
+                       name="avatarFile"
+                       class="form-control"
+                       accept="image/*" />
+            </div>
+
+            <button type="submit"
+                    class="btn btn-warning w-100 fw-bold py-2">
+                Lưu Tài Khoản
+            </button>
+
+            <a href="@Url.Action("UsersList", "Admin")"
+               class="btn btn-secondary w-100 mt-2">
+                Quay lại
+            </a>
+        }
+    </div>
+</div>

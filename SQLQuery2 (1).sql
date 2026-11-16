@@ -243,7 +243,8 @@ GO
 INSERT INTO Roles (RoleName)
 VALUES
     (N'Admin'),
-    (N'Customer');
+    (N'Customer'),
+    (N'Partner');
 GO
 
 
@@ -261,7 +262,7 @@ VALUES
 (
     N'Quản Trị Viên',
     'admin@staytravel.com',
-    '123456',
+    '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
     '0909123456',
     N'/Images/admin-avatar.png',
     1
@@ -269,7 +270,7 @@ VALUES
 (
     N'Nguyễn Văn Minh',
     'minh@gmail.com',
-    '123456',
+    '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
     '0988765432',
     N'/Images/default-avatar.png',
     2
@@ -719,7 +720,7 @@ INSERT INTO Users (
 SELECT
     S.ContactName,
     S.PartnerEmail,
-    '123456',
+    '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
     S.PhoneNumber,
     R.RoleId
 
@@ -873,7 +874,7 @@ SELECT
     1,
     N'Wifi, Tivi, Điều hòa, Phòng tắm riêng',
     N'Trung tâm thành phố',
-    N'/Images/room-default1.jpg',
+    N'/Images/room-default3.jpg',
     1
 FROM Hotels;
 
@@ -902,7 +903,7 @@ SELECT
     4,
     N'Wifi, Smart Tivi, Điều hòa, Bếp riêng, Phòng khách',
     N'Hướng nhìn toàn cảnh',
-    N'/Images/room-default2.jpg',
+    N'/Images/room-default4.jpg',
     1
 FROM Hotels;
 
